@@ -11,8 +11,10 @@ __pycache__/
 node_modules/
 dist/
 .vite/
+.venv/
 
 .idea/
 .vscode/
 
 musetalker/configs/secrets.yaml
+volcengine_binary_demo/.venv/
