@@ -19,6 +19,9 @@ export function createController(ui: UI) {
   const personaMap = new Map<string, PersonaInfo>(
     PERSONAS.map(p => [p.id, p])
   )
+  const startGuideTextMap = new Map<string, string>(
+    PERSONAS.map(p => [p.id, p.startGuideText || '开始导览'])
+  )
 
   let currentPersonaId = 'woman_demo'
   const sessionId =
@@ -141,6 +144,10 @@ export function createController(ui: UI) {
     if (ui.contextStage) ui.contextStage.textContent = '准备阶段'
     if (ui.contextPathHint) ui.contextPathHint.textContent = '—'
     if (ui.contextHint) ui.contextHint.style.display = 'none'
+    if (ui.startGuideBtn) {
+      ui.startGuideBtn.textContent =
+        startGuideTextMap.get(id) || persona.startGuideText || '开始导览'
+    }
 
     ui.personaList
         ?.querySelectorAll<HTMLButtonElement>('.persona-item')
@@ -166,6 +173,7 @@ export function createController(ui: UI) {
   renderPersonaList()
   setPersona(currentPersonaId)
   loadZoneFloors()
+  loadPersonaCopy()
 
   audio.onFinish = () => {
     const persona = personaMap.get(currentPersonaId)
@@ -260,5 +268,26 @@ export function createController(ui: UI) {
     }
   }
 
-  return { send }
+  async function loadPersonaCopy() {
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/personas')
+      const data = await res.json()
+      Object.entries(data || {}).forEach(([id, info]: any) => {
+        if (!id || !info) return
+        if (info.start_guide_text) {
+          startGuideTextMap.set(id, String(info.start_guide_text))
+        }
+      })
+      setPersona(currentPersonaId)
+    } catch {
+      // ignore failures; keep defaults from frontend
+    }
+  }
+
+  function getStartGuideCommand() {
+    const persona = personaMap.get(currentPersonaId)
+    return startGuideTextMap.get(currentPersonaId) || persona?.startGuideText || '开始导览'
+  }
+
+  return { send, getStartGuideCommand }
 }

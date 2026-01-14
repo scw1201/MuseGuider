@@ -22,6 +22,8 @@ window.addEventListener('DOMContentLoaded', () => {
           <p id="captionText"></p>
         </div>
         <div class="chat-inner">
+          <button id="startGuide" class="chat-start">开始导览</button>
+
           <input
             id="input"
             class="chat-input"
@@ -231,6 +233,10 @@ window.addEventListener('DOMContentLoaded', () => {
   /* ============================
      键盘输入
      ============================ */
+  ui.startGuideBtn.onclick = () => {
+    controller.send(controller.getStartGuideCommand())
+  }
+
   ui.sendBtn.onclick = () => {
     const text = ui.input.value.trim()
     if (!text) return

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
 import json
+import yaml
 
 from musetalker.llm.orchestrator import LLMOrchestrator
 
@@ -22,6 +23,7 @@ app.add_middleware(
 
 orch = LLMOrchestrator()
 DOMAIN_PRIOR_PATH = Path(__file__).parents[1] / "configs" / "domain_prior.json"
+PERSONAS_PATH = Path(__file__).parents[1] / "configs" / "personas.yaml"
 
 
 class LLMRequest(BaseModel):
@@ -39,3 +41,10 @@ def run_llm(req: LLMRequest):
 def get_domain_prior():
     with open(DOMAIN_PRIOR_PATH, "r", encoding="utf-8") as f:
         return json.load(f)
+
+
+@app.get("/api/personas")
+def get_personas():
+    with open(PERSONAS_PATH, "r", encoding="utf-8") as f:
+        data = yaml.safe_load(f) or {}
+    return data.get("personas", {})

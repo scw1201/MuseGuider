@@ -237,6 +237,16 @@ class LLMOrchestrator:
     ) -> str:
         persona = self._get_persona(persona_id)
         prefix = (persona.get("prompt_prefix") or "").strip()
+        self_ref = (persona.get("self_ref") or "").strip()
+        user_address = (persona.get("user_address") or "").strip()
+        if self_ref or user_address:
+            prefix = "\n".join(filter(None, [
+                prefix,
+                "称呼与自称约束：",
+                f"- 自称：{self_ref}" if self_ref else "",
+                f"- 称呼用户：{user_address}" if user_address else "",
+                "在 tts_text 中优先使用以上自称与称呼。",
+            ]))
         if self._persona_requires_english(persona_id):
             prefix = "\n".join(filter(None, [
                 prefix,

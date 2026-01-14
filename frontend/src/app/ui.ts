@@ -157,6 +157,7 @@ export function getUI() {
     // input
     input: document.getElementById('input') as HTMLInputElement,
     sendBtn: document.getElementById('send') as HTMLButtonElement,
+    startGuideBtn: document.getElementById('startGuide') as HTMLButtonElement,
 
     // 🎤 voice
     voiceBtn: document.getElementById('voice') as HTMLButtonElement,

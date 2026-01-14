@@ -1109,6 +1109,24 @@ body:not(.mode-home) .chatbar {
   color: #fff;
 }
 
+.chat-start {
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(214, 179, 120, 0.35);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--text);
+  background: rgba(12, 9, 6, 0.7);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.chat-start:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212,164,91,0.7);
+  box-shadow: 0 10px 22px rgba(212,164,91,0.2);
+}
+
 .chat-send {
   background: linear-gradient(180deg, #e6c27a, #c08a36);
   box-shadow: 0 8px 20px rgba(212,164,91,0.28);
