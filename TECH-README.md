@@ -1,4 +1,4 @@
-# MuseTalker 技术路径说明
+# MuseGuide 技术路径说明
 
 本文档聚焦“技术路径”，用于说明实时语音识别、实时音频合成、提示词工程（LLM 控制数字人行为与人格化策略）、以及数字人形象与生成方式在本项目中的落地方式。
 
@@ -8,7 +8,7 @@
 
 2) WebSocket 流式识别  
 - 浏览器通过 `frontend/src/net/ASRClient.ts` 将 PCM 流发送至 ASR WebSocket 服务。  
-- 服务端入口：`musetalker/asr/ws_server.py`，内部调用火山 ASR BigModel 客户端 `musetalker/asr/v3_bigmodel_client.py`。
+- 服务端入口：`museguide/asr/ws_server.py`，内部调用火山 ASR BigModel 客户端 `museguide/asr/v3_bigmodel_client.py`。
 
 3) 结果输出  
 - ASR 返回文本，作为 LLM 输入，用于导览意图与状态判断。
@@ -18,7 +18,7 @@
 - LLM 输出结构化 JSON，其中 `tts_text` 作为最终播报内容。
 
 2) TTS Worker 流式合成  
-- 默认使用 `musetalker/tts/worker_v3.py`，通过 WebSocket 与浏览器建立实时通道。  
+- 默认使用 `museguide/tts/worker_v3.py`，通过 WebSocket 与浏览器建立实时通道。  
 - Worker 连接火山 TTS 服务，回传 PCM 流。
 
 3) 浏览器实时播放  
@@ -31,11 +31,11 @@
 LLM 输出固定结构（`guide_state / tts_text / guide_zone / focus_exhibit / guide_stage / user_intent`），通过结构化字段驱动前端与状态机。
 
 相关文件：
-- `musetalker/llm/orchestrator.py`：核心编排，加载配置、构建 prompt、解析 JSON。
-- `musetalker/llm/prompts.py`：系统提示词模板。
-- `musetalker/configs/guide_states.yaml`：动作状态单一真源（视频状态 + tts 开关）。
-- `musetalker/configs/personas.yaml`：人物设定与提示词片段。
-- `musetalker/configs/domain_prior.json`：展区/展品/位置先验。
+- `museguide/llm/orchestrator.py`：核心编排，加载配置、构建 prompt、解析 JSON。
+- `museguide/llm/prompts.py`：系统提示词模板。
+- `museguide/configs/guide_states.yaml`：动作状态单一真源（视频状态 + tts 开关）。
+- `museguide/configs/personas.yaml`：人物设定与提示词片段。
+- `museguide/configs/domain_prior.json`：展区/展品/位置先验。
 
 ### 2) LLM 控制数字人的哪些东西
 LLM 不直接“生成形象”，而是控制“状态与内容”：
@@ -78,5 +78,5 @@ LLM 不直接“生成形象”，而是控制“状态与内容”：
 
 ## 六、启动与配置入口
 - 一键启动：`dev.sh`（ASR + TTS v3 + API）。  
-- 密钥配置：`musetalker/configs/secrets.yaml`。  
-- 重要配置：`musetalker/configs/llm.yaml`、`musetalker/configs/tts.yaml`、`musetalker/configs/personas.yaml`。
+- 密钥配置：`museguide/configs/secrets.yaml`。  
+- 重要配置：`museguide/configs/llm.yaml`、`museguide/configs/tts.yaml`、`museguide/configs/personas.yaml`。

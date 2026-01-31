@@ -1,4 +1,0 @@
-tts:
-  endpoint: wss://openspeech.bytedance.com/api/v1/tts/ws_binary
-  voice_type: zh_female_cancan_mars_bigtts
-  encoding: wav

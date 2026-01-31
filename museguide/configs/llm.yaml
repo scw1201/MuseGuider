@@ -1,0 +1,15 @@
+llm:
+  provider: ark
+  base_url: https://ark.cn-beijing.volces.com/api/v3
+  model: doubao-seed-1-6-flash-250828
+
+  # 推理行为控制
+  thinking: disabled        # enabled / disabled
+  temperature: 1.0
+  max_output_tokens: 200
+
+  # 输出控制
+  response_format: json     # text / json / json_schema（下一步可升级）
+
+  # 调试
+  debug: true

@@ -39,13 +39,13 @@ trap cleanup EXIT
 # ============================
 # secrets.yaml 优先（如需临时覆盖再手动 export）
 # ============================
-echo "🔐 Using musetalker/configs/secrets.yaml for credentials"
+echo "🔐 Using museguide/configs/secrets.yaml for credentials"
 
 # ============================
 # 启动 ASR WebSocket Server
 # ============================
 echo "🎙 Starting ASR WebSocket server (9001)..."
-python -m musetalker.asr.ws_server &
+python -m museguide.asr.ws_server &
 
 ASR_PID=$!
 echo "   ↳ ASR PID: $ASR_PID"
@@ -54,7 +54,7 @@ echo "   ↳ ASR PID: $ASR_PID"
 # 启动 TTS Worker (v3)
 # ============================
 echo "🔊 Starting TTS worker (v3)..."
-python -m musetalker.tts.worker_v3 &
+python -m museguide.tts.worker_v3 &
 
 TTS_PID=$!
 echo "   ↳ TTS PID: $TTS_PID"
@@ -63,7 +63,7 @@ echo "   ↳ TTS PID: $TTS_PID"
 # 启动 API Server
 # ============================
 echo "🌐 Starting API server (8000)..."
-uvicorn musetalker.api.server:app --reload --port 8000 &
+uvicorn museguide.api.server:app --reload --port 8000 &
 
 API_PID=$!
 echo "   ↳ API PID: $API_PID"

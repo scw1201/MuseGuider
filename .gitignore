@@ -16,5 +16,5 @@ dist/
 .idea/
 .vscode/
 
-musetalker/configs/secrets.yaml
+museguide/configs/secrets.yaml
 volcengine_binary_demo/.venv/

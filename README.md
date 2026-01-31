@@ -1,4 +1,4 @@
-# MuseTalker
+# MuseGuide
 
 面向博物馆数字导览的多进程语音交互系统，集成 ASR + LLM + TTS，并提供前端实时播放与交互。本文档概述系统特点、功能模块、启动方式与关键文件，便于维护与扩展。
 
@@ -50,7 +50,7 @@ npm install
 ```
 
 ## 配置说明
-统一在 `musetalker/configs/secrets.yaml` 维护密钥与 API 配置：
+统一在 `museguide/configs/secrets.yaml` 维护密钥与 API 配置：
 - LLM：`doubao.api_key`
 - TTS：`tts.*`
 - ASR：`asr.*`
@@ -75,40 +75,40 @@ npm run dev
 
 ### 根目录
 - `dev.sh`：一键启动 ASR WebSocket、TTS Worker（v3）与 FastAPI 服务。
-- `MuseTalker_运行指南.docx`：更完整的运行说明文档。
+- `MuseGuide_运行指南.docx`：更完整的运行说明文档。
 - `zh_female_cancan_mars_bigtts.wav`：TTS 语音示例音频。
 - `README.md`：本说明。
 
-### 后端入口与核心逻辑（musetalker/）
-- `musetalker/api/server.py`：FastAPI 入口，提供 `/api/llm`，负责 CORS 与请求封装。
-- `musetalker/llm/orchestrator.py`：LLM 业务编排核心，加载配置与先验，构建 system prompt，解析 JSON 输出并映射到前端可用的状态。
-- `musetalker/llm/prompts.py`：LLM 的系统提示词模板。
-- `musetalker/llm/client.py`：Ark SDK 简单封装（备用/实验用）。
-- `musetalker/llm/domain_prompt.py`：构建展品先验的提示词（备用/实验用）。
-- `musetalker/llm/context_store.py`：导览上下文缓存与读取（会话状态）。
-- `musetalker/llm/utils.py`：通用文本提取工具。
-- `musetalker/tts/worker_v3.py`：TTS WebSocket Worker v3（当前默认），连接火山引擎并向浏览器流式发送 PCM。
-- `musetalker/tts/worker.py`：TTS WebSocket Worker v2（保留/对比用）。
-- `musetalker/tts/service.py`：通过 TCP 与 TTS Worker 通信的服务端客户端封装，便于后端或脚本复用。
-- `musetalker/tts/client.py`：简化版 TTS Worker 客户端（一次性调用）。
-- `musetalker/tts/run_binary_tts.py`：调用火山二进制示例脚本的封装（当前为注释示例）。
-- `musetalker/asr/ws_server.py`：浏览器 ASR WebSocket 服务，接收 PCM 并调用 BigModel ASR。
-- `musetalker/asr/v3_bigmodel_client.py`：火山 ASR BigModel 客户端与协议解析。
-- `musetalker/asr/session.py`：ASR v2 协议的 streaming session 实现（调试/对比用）。
-- `musetalker/asr/protocol.py`：ASR v2 协议封装与解析工具。
-- `musetalker/asr/streaming_client.py`：简化版 ASR streaming 客户端（一次性识别 PCM）。
-- `musetalker/asr/server.py`：最小可跑的 ASR 本地测试入口（读 wav）。
-- `musetalker/asr/streaming_asr_demo.py`：官方示例脚本（参考用）。
-- `musetalker/scripts/test_doubao.py`：LLM + TTS 链路延迟测试脚本。
+### 后端入口与核心逻辑（museguide/）
+- `museguide/api/server.py`：FastAPI 入口，提供 `/api/llm`，负责 CORS 与请求封装。
+- `museguide/llm/orchestrator.py`：LLM 业务编排核心，加载配置与先验，构建 system prompt，解析 JSON 输出并映射到前端可用的状态。
+- `museguide/llm/prompts.py`：LLM 的系统提示词模板。
+- `museguide/llm/client.py`：Ark SDK 简单封装（备用/实验用）。
+- `museguide/llm/domain_prompt.py`：构建展品先验的提示词（备用/实验用）。
+- `museguide/llm/context_store.py`：导览上下文缓存与读取（会话状态）。
+- `museguide/llm/utils.py`：通用文本提取工具。
+- `museguide/tts/worker_v3.py`：TTS WebSocket Worker v3（当前默认），连接火山引擎并向浏览器流式发送 PCM。
+- `museguide/tts/worker.py`：TTS WebSocket Worker v2（保留/对比用）。
+- `museguide/tts/service.py`：通过 TCP 与 TTS Worker 通信的服务端客户端封装，便于后端或脚本复用。
+- `museguide/tts/client.py`：简化版 TTS Worker 客户端（一次性调用）。
+- `museguide/tts/run_binary_tts.py`：调用火山二进制示例脚本的封装（当前为注释示例）。
+- `museguide/asr/ws_server.py`：浏览器 ASR WebSocket 服务，接收 PCM 并调用 BigModel ASR。
+- `museguide/asr/v3_bigmodel_client.py`：火山 ASR BigModel 客户端与协议解析。
+- `museguide/asr/session.py`：ASR v2 协议的 streaming session 实现（调试/对比用）。
+- `museguide/asr/protocol.py`：ASR v2 协议封装与解析工具。
+- `museguide/asr/streaming_client.py`：简化版 ASR streaming 客户端（一次性识别 PCM）。
+- `museguide/asr/server.py`：最小可跑的 ASR 本地测试入口（读 wav）。
+- `museguide/asr/streaming_asr_demo.py`：官方示例脚本（参考用）。
+- `museguide/scripts/test_doubao.py`：LLM + TTS 链路延迟测试脚本。
 
-### 配置与数据（musetalker/configs/, musetalker/data/）
-- `musetalker/configs/llm.yaml`：LLM 模型、温度、max tokens 等配置。
-- `musetalker/configs/tts.yaml`：TTS 默认 endpoint 与音色编码。
-- `musetalker/configs/guide_states.yaml`：导览员动作状态的单一真源，定义 video_state 与 tts 开关。
-- `musetalker/configs/personas.yaml`：导览员人设与提示词、音色配置。
-- `musetalker/configs/domain_prior.json`：展区/展品/位置先验（LLM 空间感知）。
-- `musetalker/configs/secrets.yaml`：密钥与 API 配置（当前默认读取）。
-- `musetalker/data/exhibits.yaml`：早期展品先验示例（未启用）。
+### 配置与数据（museguide/configs/, museguide/data/）
+- `museguide/configs/llm.yaml`：LLM 模型、温度、max tokens 等配置。
+- `museguide/configs/tts.yaml`：TTS 默认 endpoint 与音色编码。
+- `museguide/configs/guide_states.yaml`：导览员动作状态的单一真源，定义 video_state 与 tts 开关。
+- `museguide/configs/personas.yaml`：导览员人设与提示词、音色配置。
+- `museguide/configs/domain_prior.json`：展区/展品/位置先验（LLM 空间感知）。
+- `museguide/configs/secrets.yaml`：密钥与 API 配置（当前默认读取）。
+- `museguide/data/exhibits.yaml`：早期展品先验示例（未启用）。
 
 ### 前端逻辑（frontend/src/）
 - `frontend/src/main.ts`：前端入口，初始化 UI 与控制器，处理键盘与语音按钮。
@@ -140,4 +140,4 @@ npm run dev
 - `volcengine_binary_demo/protocols/*`：二进制协议封装。
 
 ## 相关文档
-- `musetalker/README.md`
+- `museguide/README.md`
