@@ -15,6 +15,9 @@ export function createController(ui: UI) {
   const tts = new TTSClient()
   const video = new VideoEngine(ui.video)
   const zoneLocationMap = new Map<string, { floor?: string; area?: string }>()
+  const zoneBgMap = new Map<string, string>()
+  let currentBgId = 'zone_front_desk'
+  let bgTimer: number | null = null
 
   const personaMap = new Map<string, PersonaInfo>(
     PERSONAS.map(p => [p.id, p])
@@ -104,16 +107,37 @@ export function createController(ui: UI) {
         const floor = loc.floor
         const area = loc.area
         const name = zone.name
+        const id = zone.id
         if (name) {
           zoneLocationMap.set(name, { floor, area })
           if (String(name).includes('前台')) {
             zoneLocationMap.set('展馆前台', { floor, area })
+            zoneBgMap.set('展馆前台', 'zone_front_desk')
           }
+          if (id) {
+            zoneBgMap.set(name, id)
+          }
+        }
+        if (id) {
+          zoneBgMap.set(id, id)
         }
       }
     } catch {
       // ignore failures; fall back to zone name only
     }
+  }
+
+  function updateStageBg(zoneKey: string) {
+    if (!ui.avatarFrame) return
+    const bgId = zoneBgMap.get(zoneKey || '') || 'zone_front_desk'
+    if (bgId === currentBgId) return
+    currentBgId = bgId
+    if (bgTimer) window.clearTimeout(bgTimer)
+    ui.avatarFrame.classList.add('bg-fade')
+    bgTimer = window.setTimeout(() => {
+      ui.avatarFrame.style.setProperty('--stage-bg', `url('/bgs/${bgId}.png')`)
+      ui.avatarFrame.classList.remove('bg-fade')
+    }, 180)
   }
 
   function setPersona(id: string) {
@@ -141,6 +165,7 @@ export function createController(ui: UI) {
       ui.contextZone.textContent = formatZoneDisplay('展馆前台').replace(/^中华世纪坛 · /, '')
     }
     updateContextMap('展馆一层')
+    updateStageBg('展馆前台')
     if (ui.contextStage) ui.contextStage.textContent = '准备阶段'
     if (ui.contextPathHint) ui.contextPathHint.textContent = '—'
     if (ui.contextHint) ui.contextHint.style.display = 'none'
@@ -185,6 +210,7 @@ export function createController(ui: UI) {
 
   async function send(text: string) {
     await audio.resume()
+    showCaption(ui, text, 'partial')
 
     const res = await fetch('http://127.0.0.1:8000/api/llm', {
       method: 'POST',
@@ -212,7 +238,7 @@ export function createController(ui: UI) {
 
 
     if (data.tts_text) {
-      showCaption(ui, data.tts_text)
+      showCaption(ui, data.tts_text, 'final')
     }
 
     if (ui.contextZone) {
@@ -222,6 +248,7 @@ export function createController(ui: UI) {
       const parts = [floor, area, zoneName].filter(Boolean)
       ui.contextZone.textContent = trimContext(parts.join(' · '), 26)
       updateContextMap(floor)
+      updateStageBg(zoneName)
     }
 
     if (ui.contextStage) {

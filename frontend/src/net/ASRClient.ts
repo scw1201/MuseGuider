@@ -11,6 +11,15 @@ export class ASRClient {
 
   private finalText = ''
   private resolveFinal?: (t: string) => void
+  private onPartial?: (t: string) => void
+
+  constructor(onPartial?: (t: string) => void) {
+    this.onPartial = onPartial
+  }
+
+  setOnPartial(handler?: (t: string) => void) {
+    this.onPartial = handler
+  }
 
   start() {
     console.log('[ASR] start() called')
@@ -24,6 +33,20 @@ export class ASRClient {
       console.log('[ASR] recv from server:', ev.data)
 
       if (typeof ev.data === 'string') {
+        try {
+          const msg = JSON.parse(ev.data)
+          if (msg?.type === 'partial') {
+            this.onPartial?.(msg.text || '')
+            return
+          }
+          if (msg?.type === 'final') {
+            this.finalText = msg.text || ''
+            this.resolveFinal?.(this.finalText)
+            return
+          }
+        } catch {
+          // fall back to plain text
+        }
         this.finalText = ev.data
         this.resolveFinal?.(this.finalText)
       }

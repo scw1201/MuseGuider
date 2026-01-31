@@ -1,4 +1,7 @@
 import './style.css'
+import 'mouse-follower/dist/mouse-follower.min.css'
+import MouseFollower from 'mouse-follower'
+import gsap from 'gsap'
 import {
   renderApp,
   getUI,
@@ -10,6 +13,16 @@ import { createController } from './app/controller'
 import { ASRClient } from './net/ASRClient'
 
 window.addEventListener('DOMContentLoaded', () => {
+  if (window.matchMedia('(pointer: fine)').matches) {
+    MouseFollower.registerGSAP(gsap)
+    new MouseFollower({
+      container: document.documentElement,
+      speed: 0.45,
+      skewing: 2,
+      ease: 'expo.out',
+    })
+  }
+
   const app = document.getElementById('app')
   if (!app) return
 
@@ -264,6 +277,10 @@ window.addEventListener('DOMContentLoaded', () => {
       updateStatus(ui, 'Listening...', 'listening')
       hideCaption(ui)
 
+      asr.setOnPartial((text) => {
+        if (!recording) return
+        if (text) showCaption(ui, text, 'partial')
+      })
       asr.start()
       return
     }
@@ -288,7 +305,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     // 1️⃣ 显示字幕（你已经有的 Caption）
-    showCaption(ui, text)
+    showCaption(ui, text, 'final')
 
     // 2️⃣ 状态反馈
     updateStatus(ui, 'Recognized', 'idle')

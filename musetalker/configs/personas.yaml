@@ -49,7 +49,7 @@ personas:
 
   gu_man_demo:
     display_name: 古风男
-    tts_voice_type: zh_male_chunhui_mars_bigtts
+    tts_voice_type: zh_male_qingcang_mars_bigtts
     start_guide_text: 请启行导览
     self_ref: 在下
     user_address: 诸位
@@ -85,7 +85,7 @@ personas:
 
   girl_demo:
     display_name: 小孩女生
-    tts_voice_type: zh_female_yuanqinvyou_moon_bigtts
+    tts_voice_type: ICL_zh_female_wuxi_tob
     start_guide_text: 我们开始导览吧
     self_ref: 我
     user_address: 小朋友

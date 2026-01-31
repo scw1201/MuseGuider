@@ -207,12 +207,15 @@ export function updateStatus(
 
 export function showCaption(
   ui: ReturnType<typeof getUI>,
-  text: string
+  text: string,
+  mode: 'partial' | 'final' = 'final'
 ) {
   if (!ui.caption || !ui.captionText) return
 
   ui.captionText.textContent = text
   ui.caption.classList.add('show')
+  ui.caption.classList.toggle('partial', mode === 'partial')
+  ui.caption.classList.toggle('final', mode === 'final')
   const chatbar = ui.caption.closest('.chatbar')
   if (chatbar) {
     chatbar.classList.add('has-caption')
@@ -222,6 +225,7 @@ export function showCaption(
 export function hideCaption(ui: ReturnType<typeof getUI>) {
   if (!ui.caption) return
   ui.caption.classList.remove('show')
+  ui.caption.classList.remove('partial', 'final')
   const chatbar = ui.caption.closest('.chatbar')
   if (chatbar) {
     chatbar.classList.remove('has-caption')

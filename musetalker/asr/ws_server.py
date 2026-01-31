@@ -2,6 +2,7 @@
 import asyncio
 import struct
 import websockets
+import json
 
 from musetalker.asr.v3_bigmodel_client import BigModelASR
 
@@ -18,6 +19,7 @@ async def handler(ws):
     print("✅ browser connected")
     asr = BigModelASR()
     final_text = ""
+    last_sent = ""
 
     try:
         async for msg in ws:
@@ -35,7 +37,9 @@ async def handler(ws):
                     final_text = last
 
                 print("📤 [WS] send final text to UI:", final_text)
-                await ws.send(final_text)  # 发给前端
+                await ws.send(
+                    json.dumps({"type": "final", "text": final_text}, ensure_ascii=False)
+                )
                 break
 
             # 正常音频
@@ -45,6 +49,11 @@ async def handler(ws):
             text = await asr.send_audio(msg, is_last=False)
             if text:
                 final_text = text
+                if text != last_sent:
+                    last_sent = text
+                    await ws.send(
+                        json.dumps({"type": "partial", "text": text}, ensure_ascii=False)
+                    )
 
     except websockets.exceptions.ConnectionClosed as e:
         print("⚠️ [WS] browser connection closed:", e)

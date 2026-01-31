@@ -21,7 +21,8 @@ export class AudioEngine {
   }
 
   enqueuePCM(pcm: Int16Array) {
-    console.log('[Audio] enqueuePCM', pcm.length)
+    if (!pcm.length) return
+    console.log('[Audio] enqueuePCM', pcm.length, 'state', this.ctx.state)
 
     const float32 = new Float32Array(pcm.length)
     for (let i = 0; i < pcm.length; i++) {

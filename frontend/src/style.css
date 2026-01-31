@@ -54,6 +54,13 @@ body {
     linear-gradient(180deg, var(--bg0), var(--bg1));
 }
 
+@media (pointer: fine) {
+  body,
+  body * {
+    cursor: none !important;
+  }
+}
+
 #app {
   min-height: 100vh;
   position: relative;
@@ -659,7 +666,7 @@ body.mode-home::after {
 }
 
 .persona-title {
-  font-size: 16px;
+  font-size: 18px;
   color: var(--text);
   letter-spacing: 0.6px;
   font-weight: 600;
@@ -736,11 +743,11 @@ body.mode-home::after {
 }
 
 .persona-item-name {
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .persona-item-role {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-faint);
 }
 
@@ -789,7 +796,7 @@ body.mode-home::after {
 }
 
 .context-title {
-  font-size: 16px;
+  font-size: 18px;
   letter-spacing: 0.8px;
   color: var(--text);
   font-weight: 600;
@@ -798,7 +805,7 @@ body.mode-home::after {
 .context-line {
   display: flex;
   gap: 8px;
-  font-size: 13px;
+  font-size: 15px;
   line-height: 1.5;
 }
 
@@ -879,10 +886,19 @@ body.mode-home::after {
   content: "";
   position: absolute;
   inset: -20px;
-  background: url('/museum_bg.png') center / cover no-repeat;
+  background: var(--stage-bg, url('/museum_bg.png')) center / cover no-repeat;
   filter: blur(12px) saturate(0.75) brightness(0.95);
   transform: scale(1.05);
   opacity: 1.0;
+  transition: opacity 0.35s ease, filter 0.6s ease, transform 0.6s ease;
+}
+
+.avatar-frame.bg-fade::before {
+  opacity: 0;
+}
+
+.avatar-frame.bg-fade {
+  --stage-overlay: #988D80;
 }
 
 
@@ -890,11 +906,15 @@ body.mode-home::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 235, 200, 0.08),
-    rgba(10, 8, 6, 0.2)
+  background: var(
+    --stage-overlay,
+    linear-gradient(
+      180deg,
+      rgba(255, 235, 200, 0.08),
+      rgba(10, 8, 6, 0.2)
+    )
   );
+  transition: background 0.35s ease;
 }
 
 #avatar {
@@ -945,6 +965,71 @@ body.mode-home::after {
   pointer-events: none;
   display: none;
   margin: 0;
+}
+
+.caption.partial {
+  opacity: 0.7;
+}
+
+.caption.partial::after {
+  content: "思考中…";
+  position: absolute;
+  top: -6px;
+  right: 0;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.caption.final {
+  opacity: 1;
+}
+
+/* ============================
+   Mouse Follower
+   ============================ */
+.mf-cursor {
+  color: #d4a45b;
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  mix-blend-mode: normal;
+}
+
+.mf-cursor:before {
+  transform: scale(0.35);
+  box-shadow: 0 0 32px rgba(212, 164, 91, 0.55);
+}
+
+.mf-cursor:after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(212, 164, 91, 0.45);
+  box-shadow: 0 0 18px rgba(212, 164, 91, 0.35);
+  pointer-events: none;
+}
+
+.mf-cursor.-pointer:before {
+  transform: scale(0.6);
+  box-shadow: 0 0 40px rgba(212, 164, 91, 0.75);
+}
+
+.mf-cursor.-pointer:after {
+  width: 56px;
+  height: 56px;
+  top: -28px;
+  left: -28px;
+  border-color: rgba(212, 164, 91, 0.75);
+  box-shadow: 0 0 26px rgba(212, 164, 91, 0.55);
+}
+
+@media (pointer: coarse) {
+  .mf-cursor {
+    display: none;
+  }
 }
 
 .caption.show {
@@ -1103,7 +1188,7 @@ body:not(.mode-home) .chatbar {
   padding: 11px 16px;
   border-radius: var(--radius-sm);
   border: none;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   color: #fff;
@@ -1113,7 +1198,7 @@ body:not(.mode-home) .chatbar {
   padding: 11px 14px;
   border-radius: var(--radius-sm);
   border: 1px solid rgba(214, 179, 120, 0.35);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   color: var(--text);
