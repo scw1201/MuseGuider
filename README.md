@@ -1,11 +1,11 @@
-# MuseGuide - 面向博物馆学习场景的具身数字人导览原型
+# MuseGuide - 面向博物馆学习场景的对话式具身数字人导览
 
 <p align="center">
   <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
 </p>
 
 <p align="center">
-  <strong>面向博物馆学习场景的具身数字人导览原型</strong><br/>
+  <strong>面向博物馆学习场景的对话式具身数字人导览</strong><br/>
   Conversation × Context × Embodied Guidance
 </p>
 
@@ -18,7 +18,7 @@
 
 ## ✨ What Is MuseGuide
 
-MuseGuide 是一个面向博物馆导览的多模态数字人系统原型。
+MuseGuide 是一个面向博物馆导览的对话式数字人系统原型。
 它将导览过程拆成三条协同主线：
 
 - **Conversation**：连续对话组织导览节奏
@@ -63,7 +63,7 @@ MuseGuide 是一个面向博物馆导览的多模态数字人系统原型。
 
 ![System Architecture](docs/assets/opening/system-architecture.png)
 
-## 🚀 Quick Start
+## 🚀 Quick Start（系统部署）
 
 ### Requirements
 
