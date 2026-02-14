@@ -1,143 +1,161 @@
-# MuseGuide
+# MuseGuide 🏛️✨
 
-面向博物馆数字导览的多进程语音交互系统，集成 ASR + LLM + TTS，并提供前端实时播放与交互。本文档概述系统特点、功能模块、启动方式与关键文件，便于维护与扩展。
+一个面向博物馆导览场景的多角色数字人系统：
+前端可视化 + 实时语音交互 + LLM 导览决策 + TTS 播报，一套跑通完整导览链路。🚀
 
-## 系统特点
-- 多通道实时链路：ASR → LLM → TTS → 前端实时播放
-- 角色化导览：多人物设定（语气 + 音色 + 视频形象）
-- 空间感知导览：基于展区/展品/位置先验构建导览情境
-- 状态驱动渲染：导览动作状态驱动视频切换与 UI 状态提示
-- 低耦合模块：ASR/LLM/TTS/前端可独立替换与升级
+## 这套系统能做什么？🎯
 
-## 功能模块
-1) 语音识别（ASR）
-   - 浏览器录音 → WebSocket 流式识别 → 文本
-2) 语言理解（LLM）
-   - 结构化输出：guide_state / tts_text / guide_zone / focus_exhibit / guide_stage / user_intent
-3) 语音合成（TTS）
-   - WebSocket 流式合成 → PCM 实时播放
-4) 导览情境（Learning Context）
-   - UI 展示“当前位置/导览阶段/关注展品/用户意图”
-5) 前端交互
-   - 人物侧边栏 + 数字典藏页 + 实时字幕 + 状态徽标
+- 实时语音问答：观众说话后，系统进行 ASR 识别并触发导览回复。
+- 多人格导览员：支持女导览、男导览、古风导览、英文导览、儿童导览等多角色切换。
+- 状态驱动数字人：LLM 输出 `guide_state`，前端按状态切换视频动作（讲解/指路/聚焦展品）。
+- 空间感知导览：结合展区、楼层、区域和展品先验，回复更贴近真实场馆路线。
+- 实时字幕与情境面板：展示当前位置、导览阶段、关注展品、用户意图、路径提示。
+- 路线页 + 数字典藏页：同一套数据支持导览路线浏览与展品图文浏览。
 
-## 功能概览
-- 语音识别：浏览器录音 → WebSocket 流式 ASR
-- 语言理解：LLM 结构化理解与导览动作决策
-- 语音合成：TTS 流式 PCM 输出
-- 前端展示：Vite + TS，浏览器实时音频播放 + 视频状态切换
+## 一张图看主流程 🧠➡️🗣️➡️🎬
 
-## 服务与端口
-- ASR WebSocket Server：`ws://127.0.0.1:9001`
-- TTS Worker：`ws://127.0.0.1:8765`
-- API Server：`http://127.0.0.1:8000`
-- Frontend Dev Server：`http://localhost:5173`
+1. 浏览器录音并上传 PCM（WebSocket）
+2. ASR 服务流式识别文本
+3. API 调用 LLM 生成结构化导览结果
+4. 返回 `video_state` + `tts_text` + 导览上下文字段
+5. 前端切换数字人视频状态并通过 TTS 流式播报
 
-## 环境要求
-- Python 3.10
+核心字段示例：
+
+- `guide_state`
+- `video_state`
+- `tts_text`
+- `guide_zone` / `guide_floor` / `guide_area`
+- `focus_exhibit`
+- `guide_stage`
+- `user_intent`
+
+## 功能亮点（按体验层）🌟
+
+### 1) 角色化导览
+
+- 前端角色配置：`/Users/la/Desktop/MuseGuide/frontend/src/app/personas.ts`
+- 后端角色策略：`/Users/la/Desktop/MuseGuide/museguide/configs/personas.yaml`
+- 角色可定义：名字、语气、音色、起始文案、自称与称呼方式。
+
+### 2) 导览动作可控
+
+- 动作状态单一真源：`/Users/la/Desktop/MuseGuide/museguide/configs/guide_states.yaml`
+- 当前动作覆盖：`GREETING_SELF`、`EXPLAIN_DETAILED`、`POINTING_DIRECTION`、`FOCUS_EXHIBIT`
+- 每个状态可配置是否允许播报（`allow_tts`）。
+
+### 3) 空间与展品语义约束
+
+- 先验数据：`/Users/la/Desktop/MuseGuide/museguide/configs/domain_prior.json`
+- 支持按展区/楼层/区域组织展品，帮助 LLM 给出更像真实导览的回答。
+
+### 4) 多页面导览体验
+
+- 导览大厅（数字人主交互）
+- 展陈路线（按楼层/区域展示）
+- 数字典藏（展区+展品图文卡片）
+
+## 技术栈与服务端口 🧩
+
+### 后端
+
+- FastAPI（API）：`http://127.0.0.1:8000`
+- ASR WebSocket：`ws://127.0.0.1:9001`
+- TTS Worker WebSocket：`ws://127.0.0.1:8765`
+
+### 前端
+
+- Vite + TypeScript
+- 默认开发地址：`http://127.0.0.1:5173` 或 `http://localhost:5173`
+
+## 快速启动（建议直接复制）⚡
+
+### 1) 环境准备
+
+- Python 3.10+
 - Node.js 18+
+- 可用的火山引擎相关密钥（见 `secrets.yaml`）
 
-## 安装依赖
-后端依赖（示例）：
+### 2) 安装依赖
+
 ```bash
+cd /Users/la/Desktop/MuseGuide
 pip install fastapi uvicorn websockets pyyaml python-docx volcengine-sdk
-```
-
-前端依赖：
-```bash
 cd frontend
 npm install
 ```
 
-## 配置说明
-统一在 `museguide/configs/secrets.yaml` 维护密钥与 API 配置：
-- LLM：`doubao.api_key`
-- TTS：`tts.*`
-- ASR：`asr.*`
-- Billing：`billing.*`（可选）
+### 3) 配置密钥
 
-生产环境请替换并避免提交真实密钥。
+在 `/Users/la/Desktop/MuseGuide/museguide/configs/secrets.yaml` 中填写：
 
-## 启动方式
-后端：
+- `doubao.api_key`
+- `tts.*`
+- `asr.*`
+
+### 4) 启动后端三服务
+
 ```bash
+cd /Users/la/Desktop/MuseGuide
 chmod +x dev.sh
 ./dev.sh
 ```
 
-前端：
+这个脚本会自动拉起：
+
+- ASR（9001）
+- TTS（8765）
+- API（8000）
+
+### 5) 启动前端
+
 ```bash
-cd frontend
+cd /Users/la/Desktop/MuseGuide/frontend
 npm run dev
 ```
 
-## 关键文件与作用
+打开浏览器后，点击语音按钮即可开始实时交互。🎤
 
-### 根目录
-- `dev.sh`：一键启动 ASR WebSocket、TTS Worker（v3）与 FastAPI 服务。
-- `MuseGuide_运行指南.docx`：更完整的运行说明文档。
-- `zh_female_cancan_mars_bigtts.wav`：TTS 语音示例音频。
-- `README.md`：本说明。
+## 关键接口（当前版本）🔌
 
-### 后端入口与核心逻辑（museguide/）
-- `museguide/api/server.py`：FastAPI 入口，提供 `/api/llm`，负责 CORS 与请求封装。
-- `museguide/llm/orchestrator.py`：LLM 业务编排核心，加载配置与先验，构建 system prompt，解析 JSON 输出并映射到前端可用的状态。
-- `museguide/llm/prompts.py`：LLM 的系统提示词模板。
-- `museguide/llm/client.py`：Ark SDK 简单封装（备用/实验用）。
-- `museguide/llm/domain_prompt.py`：构建展品先验的提示词（备用/实验用）。
-- `museguide/llm/context_store.py`：导览上下文缓存与读取（会话状态）。
-- `museguide/llm/utils.py`：通用文本提取工具。
-- `museguide/tts/worker_v3.py`：TTS WebSocket Worker v3（当前默认），连接火山引擎并向浏览器流式发送 PCM。
-- `museguide/tts/worker.py`：TTS WebSocket Worker v2（保留/对比用）。
-- `museguide/tts/service.py`：通过 TCP 与 TTS Worker 通信的服务端客户端封装，便于后端或脚本复用。
-- `museguide/tts/client.py`：简化版 TTS Worker 客户端（一次性调用）。
-- `museguide/tts/run_binary_tts.py`：调用火山二进制示例脚本的封装（当前为注释示例）。
-- `museguide/asr/ws_server.py`：浏览器 ASR WebSocket 服务，接收 PCM 并调用 BigModel ASR。
-- `museguide/asr/v3_bigmodel_client.py`：火山 ASR BigModel 客户端与协议解析。
-- `museguide/asr/session.py`：ASR v2 协议的 streaming session 实现（调试/对比用）。
-- `museguide/asr/protocol.py`：ASR v2 协议封装与解析工具。
-- `museguide/asr/streaming_client.py`：简化版 ASR streaming 客户端（一次性识别 PCM）。
-- `museguide/asr/server.py`：最小可跑的 ASR 本地测试入口（读 wav）。
-- `museguide/asr/streaming_asr_demo.py`：官方示例脚本（参考用）。
-- `museguide/scripts/test_doubao.py`：LLM + TTS 链路延迟测试脚本。
+- `POST /api/llm`
+  - 入参：`text`, `persona_id`, `session_id`
+  - 出参：导览状态、TTS 文本、空间上下文字段
+- `GET /api/domain_prior`
+  - 返回展区/展品/位置先验（路线页、典藏页也会使用）
+- `GET /api/personas`
+  - 返回后端角色配置
 
-### 配置与数据（museguide/configs/, museguide/data/）
-- `museguide/configs/llm.yaml`：LLM 模型、温度、max tokens 等配置。
-- `museguide/configs/tts.yaml`：TTS 默认 endpoint 与音色编码。
-- `museguide/configs/guide_states.yaml`：导览员动作状态的单一真源，定义 video_state 与 tts 开关。
-- `museguide/configs/personas.yaml`：导览员人设与提示词、音色配置。
-- `museguide/configs/domain_prior.json`：展区/展品/位置先验（LLM 空间感知）。
-- `museguide/configs/secrets.yaml`：密钥与 API 配置（当前默认读取）。
-- `museguide/data/exhibits.yaml`：早期展品先验示例（未启用）。
+## 项目结构速览 📁
 
-### 前端逻辑（frontend/src/）
-- `frontend/src/main.ts`：前端入口，初始化 UI 与控制器，处理键盘与语音按钮。
-- `frontend/src/app/controller.ts`：核心流程控制，串联 LLM 请求、TTS 流式播放与视频状态切换。
-- `frontend/src/app/ui.ts`：UI DOM 结构与状态更新函数。
-- `frontend/src/app/personas.ts`：前端展示的人物信息配置（头像/简介/状态描述）。
-- `frontend/src/audio/AudioEngine.ts`：PCM 播放引擎，队列式播放与结束回调。
-- `frontend/src/video/VideoEngine.ts`：视频状态切换（IDLE / LISTENING / EXPLAIN 等）。
-- `frontend/src/net/ASRClient.ts`：浏览器 ASR 客户端，录音与 WebSocket 推流。
-- `frontend/src/net/PCMRecorder.ts`：录音与音频 worklet 管理。
-- `frontend/src/net/pcm-worklet.js`：AudioWorklet，将浮点音频转换为 int16 PCM。
-- `frontend/src/net/TTSClient.ts`：TTS Worker WebSocket 客户端，接收 meta + PCM。
-- `frontend/src/net/types.ts`：TTS/PCM 类型定义。
-- `frontend/src/style.css`：页面样式与状态标识。
+- `/Users/la/Desktop/MuseGuide/frontend`
+  - 前端页面、交互逻辑、ASR/TTS 客户端、视频状态切换
+- `/Users/la/Desktop/MuseGuide/museguide/api`
+  - FastAPI 入口
+- `/Users/la/Desktop/MuseGuide/museguide/llm`
+  - Prompt 组装、LLM 编排、上下文缓存
+- `/Users/la/Desktop/MuseGuide/museguide/asr`
+  - WebSocket ASR 服务与客户端协议逻辑
+- `/Users/la/Desktop/MuseGuide/museguide/tts`
+  - TTS WebSocket Worker
+- `/Users/la/Desktop/MuseGuide/museguide/configs`
+  - 人设、状态、领域先验、密钥配置
+- `/Users/la/Desktop/MuseGuide/frontend/public/videos`
+  - 数字人动作视频素材
 
-### 前端资源与构建（frontend/）
-- `frontend/index.html`：Vite 入口 HTML。
-- `frontend/package.json` / `frontend/package-lock.json`：前端依赖与脚本。
-- `frontend/tsconfig.json`：TS 配置。
-- `frontend/public/logo.png`：页面 Logo。
-- `frontend/public/videos/*.mp4`：导览员动作视频，文件名与 `guide_states.yaml` 的 `video_state` 对应。
-- `frontend/public/videos/siyang_fangzun/*`：分展品的视频素材。
-- `frontend/public/test1.wav` / `frontend/public/test2.wav`：音频测试文件。
-- `frontend/public/domain_prior.json`：数字典藏页面数据源（前端用）。
+## 当前边界与注意事项 ⚠️
 
-### 火山引擎示例（volcengine_binary_demo/）
-- `volcengine_binary_demo/examples/volcengine/binary.py`：官方二进制 TTS 示例。
-- `volcengine_binary_demo/setup.py` / `pyproject.toml`：示例 SDK 依赖配置。
-- `volcengine_binary_demo/protocols/*`：二进制协议封装。
+- 当前数字人是“状态切片视频切换”，不是逐帧口型实时生成。
+- 前端依赖本地后端地址（`127.0.0.1`），跨机部署需调整 CORS 和 WS 地址。
+- `dev.sh` 启动前会清理端口占用，避免旧进程冲突。
 
-## 相关文档
-- `museguide/README.md`
+## 接下来可扩展方向 🛠️
+
+- 接入实时视频口型模型（如 Wav2Lip 流式改造）
+- 加入会话记忆可视化与用户画像
+- 支持多语言导览脚本自动切换
+- 支持导览质量评估与数据回放
+
+## License
+
+当前仓库未单独声明开源许可证；如需公开发布，建议补充 `LICENSE` 文件。📌
