@@ -1,185 +1,127 @@
-# MuseGuide 🏛️✨
+# MuseGuide
 
-一个面向博物馆导览场景的多角色数字人系统：
-前端可视化 + 实时语音交互 + LLM 导览决策 + TTS 播报，一套跑通完整导览链路。🚀
+<p align="center">
+  <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
+</p>
 
-## 快速演示区（截图 + GIF 模板）📸🎞️
+<p align="center">
+  <strong>面向博物馆学习场景的具身数字人导览原型</strong><br/>
+  Conversation × Context × Embodied Guidance
+</p>
 
-> 想让仓库首页更“有感知”，先把这块补上最有效。
+<p align="center">
+  <img alt="Status" src="https://img.shields.io/badge/status-prototype-111827?style=for-the-badge&logo=appveyor"/>
+  <img alt="Frontend" src="https://img.shields.io/badge/frontend-Vite%20%2B%20TypeScript-0ea5e9?style=for-the-badge&logo=vite"/>
+  <img alt="Backend" src="https://img.shields.io/badge/backend-FastAPI%20%2B%20WebSocket-10b981?style=for-the-badge&logo=fastapi"/>
+  <img alt="Domain" src="https://img.shields.io/badge/domain-Museum%20Guide-f59e0b?style=for-the-badge"/>
+</p>
 
-### 首页主截图模板
+## ✨ What Is MuseGuide
 
-![MuseGuide 首页演示截图（请替换）](docs/assets/demo-home.png)
+MuseGuide 是一个面向博物馆导览的多模态数字人系统原型。
+它将导览过程拆成三条协同主线：
 
-### 交互 GIF 模板
+- **Conversation**：连续对话组织导览节奏
+- **Context**：持续维护导览情境与空间线索
+- **Embodied Guidance**：通过角色、语音与动作完成具身表达
 
-![MuseGuide 语音导览演示 GIF（请替换）](docs/assets/demo-voice-flow.gif)
+> 核心目标：让导览从“一次性讲解”变成“可交互、可持续、可感知”的学习体验。
 
-### 你可以直接这样替换素材
+## 🧭 Thesis-Aligned Structure
 
-1. 新建目录：`/Users/la/Desktop/MuseGuide/docs/assets`
-2. 放入两张素材：`demo-home.png`、`demo-voice-flow.gif`
-3. 推送后 GitHub 首页会自动展示
+### 1) 研究背景与问题
 
-### 可复制的素材规范（建议）
+![研究背景与问题](docs/assets/opening/bg-and-rq.png)
 
-- 首页截图：`1920x1080` 或 `1600x900`，尽量展示角色栏 + 对话区 + 情境区
-- GIF 时长：`6~12 秒`，展示“点语音 -> 识别 -> 回复 -> 播报”完整闭环
-- GIF 大小：建议 `< 12MB`，避免加载过慢
+### 2) CCEG 设计框架
 
-## 这套系统能做什么？🎯
+![CCEG Framework](docs/assets/opening/cceg-framework.png)
 
-- 实时语音问答：观众说话后，系统进行 ASR 识别并触发导览回复。
-- 多人格导览员：支持女导览、男导览、古风导览、英文导览、儿童导览等多角色切换。
-- 状态驱动数字人：LLM 输出 `guide_state`，前端按状态切换视频动作（讲解/指路/聚焦展品）。
-- 空间感知导览：结合展区、楼层、区域和展品先验，回复更贴近真实场馆路线。
-- 实时字幕与情境面板：展示当前位置、导览阶段、关注展品、用户意图、路径提示。
-- 路线页 + 数字典藏页：同一套数据支持导览路线浏览与展品图文浏览。
+### 3) 论文主线与系统对应
 
-## 一张图看主流程 🧠➡️🗣️➡️🎬
+![Thesis Outline](docs/assets/opening/thesis-outline.png)
 
-1. 浏览器录音并上传 PCM（WebSocket）
-2. ASR 服务流式识别文本
-3. API 调用 LLM 生成结构化导览结果
-4. 返回 `video_state` + `tts_text` + 导览上下文字段
-5. 前端切换数字人视频状态并通过 TTS 流式播报
+## 🖥️ System Preview
 
-核心字段示例：
+### Prototype UI
 
-- `guide_state`
-- `video_state`
-- `tts_text`
-- `guide_zone` / `guide_floor` / `guide_area`
-- `focus_exhibit`
-- `guide_stage`
-- `user_intent`
+![Prototype UI](docs/assets/opening/prototype-ui.png)
 
-## 功能亮点（按体验层）🌟
+### Conversation
 
-### 1) 角色化导览
+![Conversation Dimension](docs/assets/opening/conversation-dimension.png)
 
-- 前端角色配置：`/Users/la/Desktop/MuseGuide/frontend/src/app/personas.ts`
-- 后端角色策略：`/Users/la/Desktop/MuseGuide/museguide/configs/personas.yaml`
-- 角色可定义：名字、语气、音色、起始文案、自称与称呼方式。
+### Context
 
-### 2) 导览动作可控
+![Context Dimension](docs/assets/opening/context-dimension.png)
 
-- 动作状态单一真源：`/Users/la/Desktop/MuseGuide/museguide/configs/guide_states.yaml`
-- 当前动作覆盖：`GREETING_SELF`、`EXPLAIN_DETAILED`、`POINTING_DIRECTION`、`FOCUS_EXHIBIT`
-- 每个状态可配置是否允许播报（`allow_tts`）。
+### Embodied Guidance
 
-### 3) 空间与展品语义约束
+![Embodied Guidance Dimension](docs/assets/opening/embodied-dimension.png)
 
-- 先验数据：`/Users/la/Desktop/MuseGuide/museguide/configs/domain_prior.json`
-- 支持按展区/楼层/区域组织展品，帮助 LLM 给出更像真实导览的回答。
+### End-to-End Architecture
 
-### 4) 多页面导览体验
+![System Architecture](docs/assets/opening/system-architecture.png)
 
-- 导览大厅（数字人主交互）
-- 展陈路线（按楼层/区域展示）
-- 数字典藏（展区+展品图文卡片）
+## 🚀 Quick Start
 
-## 技术栈与服务端口 🧩
-
-### 后端
-
-- FastAPI（API）：`http://127.0.0.1:8000`
-- ASR WebSocket：`ws://127.0.0.1:9001`
-- TTS Worker WebSocket：`ws://127.0.0.1:8765`
-
-### 前端
-
-- Vite + TypeScript
-- 默认开发地址：`http://127.0.0.1:5173` 或 `http://localhost:5173`
-
-## 快速启动（建议直接复制）⚡
-
-### 1) 环境准备
+### Requirements
 
 - Python 3.10+
 - Node.js 18+
-- 可用的火山引擎相关密钥（见 `secrets.yaml`）
 
-### 2) 安装依赖
+### Install
 
 ```bash
-cd /Users/la/Desktop/MuseGuide
 pip install fastapi uvicorn websockets pyyaml python-docx volcengine-sdk
 cd frontend
 npm install
 ```
 
-### 3) 配置密钥
+### Configure
 
-在 `/Users/la/Desktop/MuseGuide/museguide/configs/secrets.yaml` 中填写：
+在 `museguide/configs/secrets.yaml` 中配置密钥：
 
 - `doubao.api_key`
 - `tts.*`
 - `asr.*`
 
-### 4) 启动后端三服务
+### Run Backend
 
 ```bash
-cd /Users/la/Desktop/MuseGuide
-chmod +x dev.sh
 ./dev.sh
 ```
 
-这个脚本会自动拉起：
-
-- ASR（9001）
-- TTS（8765）
-- API（8000）
-
-### 5) 启动前端
+### Run Frontend
 
 ```bash
-cd /Users/la/Desktop/MuseGuide/frontend
+cd frontend
 npm run dev
 ```
 
-打开浏览器后，点击语音按钮即可开始实时交互。🎤
+## 🧪 Current Scope
 
-## 关键接口（当前版本）🔌
+- 当前版本聚焦“博物馆导览”核心场景
+- 强调原型验证与体验验证，不追求工程化完备
+- 数字人表现以状态驱动为主，实时逐帧口型仍在后续方向中
 
-- `POST /api/llm`
-  - 入参：`text`, `persona_id`, `session_id`
-  - 出参：导览状态、TTS 文本、空间上下文字段
-- `GET /api/domain_prior`
-  - 返回展区/展品/位置先验（路线页、典藏页也会使用）
-- `GET /api/personas`
-  - 返回后端角色配置
+## 🗺️ Roadmap
 
-## 项目结构速览 📁
+- [ ] 实时口型与视频驱动链路升级
+- [ ] 更细粒度的导览情境建模
+- [ ] 更系统的量化评估与对照实验
+- [ ] 多语言导览体验优化
 
-- `/Users/la/Desktop/MuseGuide/frontend`
-  - 前端页面、交互逻辑、ASR/TTS 客户端、视频状态切换
-- `/Users/la/Desktop/MuseGuide/museguide/api`
-  - FastAPI 入口
-- `/Users/la/Desktop/MuseGuide/museguide/llm`
-  - Prompt 组装、LLM 编排、上下文缓存
-- `/Users/la/Desktop/MuseGuide/museguide/asr`
-  - WebSocket ASR 服务与客户端协议逻辑
-- `/Users/la/Desktop/MuseGuide/museguide/tts`
-  - TTS WebSocket Worker
-- `/Users/la/Desktop/MuseGuide/museguide/configs`
-  - 人设、状态、领域先验、密钥配置
-- `/Users/la/Desktop/MuseGuide/frontend/public/videos`
-  - 数字人动作视频素材
+## 🤝 Contributing
 
-## 当前边界与注意事项 ⚠️
+欢迎 Issue / PR / 讨论建议。
+如果你有博物馆教育、交互设计、语音交互或数字人方向的想法，欢迎一起共创。
 
-- 当前数字人是“状态切片视频切换”，不是逐帧口型实时生成。
-- 前端依赖本地后端地址（`127.0.0.1`），跨机部署需调整 CORS 和 WS 地址。
-- `dev.sh` 启动前会清理端口占用，避免旧进程冲突。
+## 📄 License
 
-## 接下来可扩展方向 🛠️
+目前仓库暂未声明正式开源许可证。
+如需对外开源发布，建议补充 `LICENSE` 文件（如 MIT / Apache-2.0）。
 
-- 接入实时视频口型模型（如 Wav2Lip 流式改造）
-- 加入会话记忆可视化与用户画像
-- 支持多语言导览脚本自动切换
-- 支持导览质量评估与数据回放
+## 🙌 Acknowledgements
 
-## License
-
-当前仓库未单独声明开源许可证；如需公开发布，建议补充 `LICENSE` 文件。📌
+本 README 叙事结构与图示基于项目开题材料整理，并与当前原型实现保持一致。
