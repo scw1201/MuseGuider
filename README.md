@@ -6,9 +6,6 @@
   <strong>Conversation × Context × Embodied Guidance</strong><br/>
 </p>
 
-<p align="center">
-  <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
-</p>
 
 <p align="center">
   <img alt="Status" src="https://img.shields.io/badge/status-prototype-111827?style=for-the-badge&logo=appveyor"/>
@@ -16,6 +13,12 @@
   <img alt="Backend" src="https://img.shields.io/badge/backend-FastAPI%20%2B%20WebSocket-10b981?style=for-the-badge&logo=fastapi"/>
   <img alt="Domain" src="https://img.shields.io/badge/domain-Museum%20Guide-f59e0b?style=for-the-badge"/>
 </p>
+
+<p align="center">
+  <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
+</p>
+
+
 
 ## ✨ What Is MuseGuide
 
