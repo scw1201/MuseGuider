@@ -1,12 +1,13 @@
 # MuseGuide - 面向博物馆学习场景的对话式具身数字人导览
 
+
+
 <p align="center">
-  <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
+  <strong>Conversation × Context × Embodied Guidance</strong><br/>
 </p>
 
 <p align="center">
-  <strong>面向博物馆学习场景的对话式具身数字人导览</strong><br/>
-  Conversation × Context × Embodied Guidance
+  <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
 </p>
 
 <p align="center">
