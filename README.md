@@ -35,15 +35,15 @@ MuseGuide 是一个面向博物馆导览的对话式数字人系统原型。
 
 ### 1) 研究背景与问题
 
-![研究背景与问题](docs/assets/opening/bg-and-rq.png)
+![研究背景与问题](docs/assets/opening/bg-and-rq-clean.png)
 
 ### 2) CCEG 设计框架
 
-![CCEG Framework](docs/assets/opening/cceg-framework.png)
+![CCEG Framework](docs/assets/opening/cceg-framework-clean.png)
 
 ### 3) 论文主线与系统对应
 
-![Thesis Outline](docs/assets/opening/thesis-outline.png)
+![Thesis Outline](docs/assets/opening/thesis-outline-clean.png)
 
 ## 🖥️ System Preview
 
@@ -65,7 +65,7 @@ MuseGuide 是一个面向博物馆导览的对话式数字人系统原型。
 
 ### End-to-End Architecture
 
-![System Architecture](docs/assets/opening/system-architecture.png)
+![System Architecture](docs/assets/opening/system-architecture-clean.png)
 
 ## 🚀 Quick Start（系统部署）
 
