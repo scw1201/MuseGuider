@@ -1,4 +1,4 @@
-# MuseGuide
+# MuseGuide - 面向博物馆学习场景的具身数字人导览原型
 
 <p align="center">
   <img src="images/muse_teaser.gif" alt="MuseGuide Teaser" width="900"/>
