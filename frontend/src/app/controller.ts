@@ -3,12 +3,32 @@
 import { AudioEngine } from '../audio/AudioEngine'
 import { TTSClient } from '../net/TTSClient'
 import { VideoEngine } from '../video/VideoEngine'
-import { updateStatus, showCaption, hideCaption } from './ui'
+import { updateStatus, showCaption, hideCaption, renderSuggestedActions } from './ui'
 import type { getUI } from './ui'
 import { PERSONAS, type PersonaInfo } from './personas'
-import type { PCMChunk } from '../net/types'
+import type { PCMChunk, LLMResponse, SuggestedAction } from '../net/types'
 
 type UI = ReturnType<typeof getUI>
+
+type DomainExhibit = {
+  id: string
+  name: string
+  image?: string
+}
+
+type DomainZone = {
+  id: string
+  name: string
+  exhibits: DomainExhibit[]
+  previewImage?: string
+}
+
+const PROGRESS_ZONE_IDS = new Set([
+  'zone_chinese_origins',
+  'zone_calligraphy_painting',
+  'zone_world_classics',
+  'zone_children_exploration',
+])
 
 export function createController(ui: UI) {
   const audio = new AudioEngine(24000)
@@ -16,6 +36,15 @@ export function createController(ui: UI) {
   const video = new VideoEngine(ui.video)
   const zoneLocationMap = new Map<string, { floor?: string; area?: string }>()
   const zoneBgMap = new Map<string, string>()
+  const zoneNameToId = new Map<string, string>()
+  const exhibitNameToId = new Map<string, string>()
+  const exhibitIdToImage = new Map<string, string>()
+  const zoneIdToPreviewImage = new Map<string, string>()
+  const progressZones: DomainZone[] = []
+  const visitedZoneIds = new Set<string>()
+  const visitedExhibitIds = new Set<string>()
+  let currentZoneId = ''
+  let currentExhibitId = ''
   let currentBgId = 'zone_front_desk'
   let bgTimer: number | null = null
 
@@ -27,6 +56,7 @@ export function createController(ui: UI) {
   )
 
   let currentPersonaId = 'woman_demo'
+  let hasConversationStarted = false
   const sessionId =
     globalThis.crypto?.randomUUID?.() ||
     `sid_${Date.now()}_${Math.random().toString(16).slice(2)}`
@@ -110,6 +140,9 @@ export function createController(ui: UI) {
         const id = zone.id
         if (name) {
           zoneLocationMap.set(name, { floor, area })
+          if (id) {
+            zoneNameToId.set(String(name), String(id))
+          }
           if (String(name).includes('前台')) {
             zoneLocationMap.set('展馆前台', { floor, area })
             zoneBgMap.set('展馆前台', 'zone_front_desk')
@@ -120,11 +153,147 @@ export function createController(ui: UI) {
         }
         if (id) {
           zoneBgMap.set(id, id)
+          zoneIdToPreviewImage.set(String(id), `/bgs/${id}.png`)
         }
+        if (!PROGRESS_ZONE_IDS.has(String(id || ''))) {
+          continue
+        }
+        const exhibits: DomainExhibit[] = (zone.exhibits || []).map((exhibit: any) => {
+          const exhibitId = String(exhibit.id || '')
+          const exhibitName = String(exhibit.name || '')
+          const exhibitImage = String(exhibit.image || '')
+          if (exhibitName && exhibitId) {
+            exhibitNameToId.set(exhibitName, exhibitId)
+          }
+          if (exhibitId && exhibitImage) {
+            exhibitIdToImage.set(exhibitId, exhibitImage)
+          }
+          return {
+            id: exhibitId,
+            name: exhibitName,
+            image: exhibitImage,
+          }
+        })
+        progressZones.push({
+          id: String(id || ''),
+          name: String(name || ''),
+          exhibits,
+          previewImage: id ? `/bgs/${id}.png` : '',
+        })
       }
+      renderTourProgress()
+      renderProgressPreview()
     } catch {
       // ignore failures; fall back to zone name only
     }
+  }
+
+  function renderTourProgress() {
+    if (!ui.progressRoot) return
+    ui.progressRoot.innerHTML = progressZones.map(zone => {
+      const zoneVisited = visitedZoneIds.has(zone.id)
+      const zoneCurrent = currentZoneId === zone.id
+      const exhibitItems = zone.exhibits.map(exhibit => {
+        const visited = visitedExhibitIds.has(exhibit.id)
+        const current = currentExhibitId === exhibit.id
+        return `
+          <div class="progress-exhibit ${current ? 'current' : visited ? 'visited' : 'pending'}">
+            <span class="progress-dot"></span>
+            <span class="progress-name">${exhibit.name}</span>
+          </div>
+        `
+      }).join('')
+
+      return `
+        <section class="progress-zone ${zoneCurrent ? 'current' : zoneVisited ? 'visited' : 'pending'}">
+          <div class="progress-zone-header">
+            <span class="progress-zone-dot"></span>
+            <span class="progress-zone-name">${zone.name}</span>
+          </div>
+          <div class="progress-exhibit-list">
+            ${exhibitItems}
+          </div>
+        </section>
+      `
+    }).join('')
+  }
+
+  function resetTourProgress() {
+    visitedZoneIds.clear()
+    visitedExhibitIds.clear()
+    currentZoneId = ''
+    currentExhibitId = ''
+    renderTourProgress()
+    renderProgressPreview()
+  }
+
+  function updateTourProgress(zoneName?: string, exhibitName?: string) {
+    const zoneId = zoneName ? zoneNameToId.get(zoneName) : ''
+    const exhibitId = exhibitName ? exhibitNameToId.get(exhibitName) : ''
+    currentZoneId = zoneId || ''
+    currentExhibitId = exhibitId || ''
+    if (zoneId) {
+      visitedZoneIds.add(zoneId)
+    }
+    if (exhibitId) {
+      visitedExhibitIds.add(exhibitId)
+    }
+    renderTourProgress()
+    renderProgressPreview()
+  }
+
+  function syncTourProgressFromResponse(data: LLMResponse) {
+    const visitedZoneNames = data.visited_zones || []
+    const visitedExhibitNames = data.visited_exhibits || []
+    visitedZoneIds.clear()
+    visitedExhibitIds.clear()
+
+    for (const zoneName of visitedZoneNames) {
+      const zoneId = zoneNameToId.get(zoneName)
+      if (zoneId) visitedZoneIds.add(zoneId)
+    }
+    for (const exhibitName of visitedExhibitNames) {
+      const exhibitId = exhibitNameToId.get(exhibitName)
+      if (exhibitId) visitedExhibitIds.add(exhibitId)
+    }
+
+    currentZoneId = data.current_zone ? (zoneNameToId.get(data.current_zone) || '') : ''
+    currentExhibitId = data.current_exhibit ? (exhibitNameToId.get(data.current_exhibit) || '') : ''
+
+    if (!visitedZoneNames.length && !visitedExhibitNames.length) {
+      updateTourProgress(data.guide_zone, data.focus_exhibit)
+      return
+    }
+    renderTourProgress()
+    renderProgressPreview()
+  }
+
+  function renderProgressPreview() {
+    if (!ui.progressPreviewTitle || !ui.progressPreviewImage || !ui.progressPreviewEmpty) return
+
+    const exhibitImage = currentExhibitId ? exhibitIdToImage.get(currentExhibitId) || '' : ''
+    const zoneImage = currentZoneId ? zoneIdToPreviewImage.get(currentZoneId) || '' : ''
+    const previewImage = currentExhibitId ? exhibitImage : zoneImage
+
+    const currentZoneName =
+      progressZones.find(zone => zone.id === currentZoneId)?.name || '尚未进入展区'
+    const currentExhibitName =
+      progressZones
+        .flatMap(zone => zone.exhibits)
+        .find(exhibit => exhibit.id === currentExhibitId)?.name || ''
+
+    ui.progressPreviewTitle.textContent = currentExhibitName || currentZoneName
+
+    if (previewImage) {
+      ui.progressPreviewImage.src = previewImage
+      ui.progressPreviewImage.classList.remove('hidden')
+      ui.progressPreviewEmpty.classList.add('hidden')
+      return
+    }
+
+    ui.progressPreviewImage.removeAttribute('src')
+    ui.progressPreviewImage.classList.add('hidden')
+    ui.progressPreviewEmpty.classList.remove('hidden')
   }
 
   function updateStageBg(zoneKey: string) {
@@ -138,6 +307,13 @@ export function createController(ui: UI) {
       ui.avatarFrame.style.setProperty('--stage-bg', `url('/bgs/${bgId}.png')`)
       ui.avatarFrame.classList.remove('bg-fade')
     }, 180)
+  }
+
+  function setSidebarPanel(panel: 'personas' | 'progress') {
+    ui.personaTab?.classList.toggle('active', panel === 'personas')
+    ui.progressTab?.classList.toggle('active', panel === 'progress')
+    ui.personaSidebarPanel?.classList.toggle('active', panel === 'personas')
+    ui.progressSidebarPanel?.classList.toggle('active', panel === 'progress')
   }
 
   function setPersona(id: string) {
@@ -173,6 +349,9 @@ export function createController(ui: UI) {
       ui.startGuideBtn.textContent =
         startGuideTextMap.get(id) || persona.startGuideText || '开始导览'
     }
+    hasConversationStarted = false
+    resetTourProgress()
+    renderSuggestionButtons([])
 
     ui.personaList
         ?.querySelectorAll<HTMLButtonElement>('.persona-item')
@@ -195,23 +374,37 @@ export function createController(ui: UI) {
     }
   }
 
+  ui.personaTab?.addEventListener('click', () => setSidebarPanel('personas'))
+  ui.progressTab?.addEventListener('click', () => setSidebarPanel('progress'))
+
   renderPersonaList()
+  setSidebarPanel('personas')
   setPersona(currentPersonaId)
   loadZoneFloors()
   loadPersonaCopy()
 
-  audio.onFinish = () => {
-    const persona = personaMap.get(currentPersonaId)
-    const desc = persona?.stateDescriptions.IDLE || '静待观众'
-    updateStatus(ui, 'idle', undefined, desc)
-    video.setState('IDLE')
-    hideCaption(ui)
+  function renderSuggestionButtons(actions: SuggestedAction[]) {
+    if (!hasConversationStarted && !actions.length) {
+      renderSuggestedActions(ui, [])
+      return
+    }
+    renderSuggestedActions(ui, actions)
+    ui.suggestionRow
+      ?.querySelectorAll<HTMLButtonElement>('.suggestion-chip')
+      .forEach((button: HTMLButtonElement) => {
+        button.addEventListener('click', () => {
+          const text = button.dataset.text?.trim()
+          if (!text) return
+          submitUserInput(text, 'chip')
+        })
+      })
   }
 
-  async function send(text: string) {
-    await audio.resume()
-    showCaption(ui, text, 'partial')
+  function normalizeUserInput(text: string) {
+    return text.replace(/\s+/g, ' ').trim()
+  }
 
+  async function requestLLM(text: string) {
     const res = await fetch('http://127.0.0.1:8000/api/llm', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -220,11 +413,16 @@ export function createController(ui: UI) {
         persona_id: currentPersonaId,
         session_id: sessionId,
       }),
-
     })
 
-    const data = await res.json()
+    if (!res.ok) {
+      throw new Error(`LLM request failed with ${res.status}`)
+    }
 
+    return (await res.json()) as LLMResponse
+  }
+
+  function applyLLMResponse(data: LLMResponse) {
     if (data.video_dir || data.video_prefix) {
       const dir = data.video_dir || 'woman_demo'
       const prefix = data.video_prefix || data.video_dir || dir
@@ -236,13 +434,12 @@ export function createController(ui: UI) {
       video.setPersona(dir, prefix)
     }
 
-
     if (data.tts_text) {
       showCaption(ui, data.tts_text, 'final')
     }
 
     if (ui.contextZone) {
-      const zoneName = data.guide_zone || '展馆前台'
+      const zoneName = data.current_zone || data.guide_zone || '展馆前台'
       const floor = data.guide_floor || ''
       const area = data.guide_area || ''
       const parts = [floor, area, zoneName].filter(Boolean)
@@ -256,22 +453,21 @@ export function createController(ui: UI) {
     }
 
     if (ui.contextAnchor) {
-      ui.contextAnchor.textContent = trimContext(data.focus_exhibit || '未确定', 20)
+      ui.contextAnchor.textContent = trimContext(data.current_exhibit || data.focus_exhibit || '未确定', 20)
     }
 
     if (ui.contextUser) {
       ui.contextUser.textContent = trimContext(data.user_intent || '了解信息', 20)
     }
 
+    syncTourProgressFromResponse(data)
+
     if (ui.contextHint && ui.contextPathHint) {
-      const match = /可以继续了解[:：](.+)$/u.exec(data.tts_text || '')
-      if (match && match[1]) {
-        ui.contextPathHint.textContent = trimContext(match[1], 40)
-        ui.contextHint.style.display = 'flex'
-      } else {
-        ui.contextHint.style.display = 'none'
-      }
+      ui.contextHint.style.display = 'none'
     }
+
+    hasConversationStarted = true
+    renderSuggestionButtons(data.suggested_actions || [])
 
     if (data.video_state) {
       const persona = personaMap.get(currentPersonaId)
@@ -292,6 +488,34 @@ export function createController(ui: UI) {
       const persona = personaMap.get(currentPersonaId)
       const desc = persona?.stateDescriptions.IDLE || '静待观众'
       updateStatus(ui, 'idle', undefined, desc)
+    }
+  }
+
+  audio.onFinish = () => {
+    const persona = personaMap.get(currentPersonaId)
+    const desc = persona?.stateDescriptions.IDLE || '静待观众'
+    updateStatus(ui, 'idle', undefined, desc)
+    video.setState('IDLE')
+    hideCaption(ui)
+  }
+
+  async function submitUserInput(rawText: string, source: 'text' | 'voice' | 'chip' | 'start' = 'text') {
+    const text = normalizeUserInput(rawText)
+    if (!text) return
+
+    await audio.resume()
+    showCaption(ui, text, 'partial')
+    updateStatus(ui, source === 'voice' ? 'Recognizing...' : 'Thinking...', undefined)
+
+    try {
+      const data = await requestLLM(text)
+      applyLLMResponse(data)
+    } catch {
+      const persona = personaMap.get(currentPersonaId)
+      const desc = persona?.stateDescriptions.IDLE || '静待观众'
+      updateStatus(ui, 'idle', undefined, desc)
+      video.setState('IDLE')
+      renderSuggestionButtons([])
     }
   }
 
@@ -316,5 +540,5 @@ export function createController(ui: UI) {
     return startGuideTextMap.get(currentPersonaId) || persona?.startGuideText || '开始导览'
   }
 
-  return { send, getStartGuideCommand }
+  return { send: submitUserInput, submitUserInput, getStartGuideCommand }
 }

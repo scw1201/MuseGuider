@@ -31,6 +31,7 @@ window.addEventListener('DOMContentLoaded', () => {
     'beforeend',
     `
       <footer class="chatbar">
+        <div class="suggestion-row" id="suggestionRow"></div>
         <div class="caption" id="caption">
           <p id="captionText"></p>
         </div>
@@ -247,14 +248,14 @@ window.addEventListener('DOMContentLoaded', () => {
      键盘输入
      ============================ */
   ui.startGuideBtn.onclick = () => {
-    controller.send(controller.getStartGuideCommand())
+    controller.submitUserInput(controller.getStartGuideCommand(), 'start')
   }
 
   ui.sendBtn.onclick = () => {
     const text = ui.input.value.trim()
     if (!text) return
 
-    controller.send(text)
+    controller.submitUserInput(text, 'text')
     ui.input.value = ''
   }
 
@@ -311,6 +312,6 @@ window.addEventListener('DOMContentLoaded', () => {
     updateStatus(ui, 'Recognized', 'idle')
 
     // 3️⃣ 👈 直接发给 LLM（不需要再点发送）
-    controller.send(text)
+    controller.submitUserInput(text, 'voice')
   }
 })

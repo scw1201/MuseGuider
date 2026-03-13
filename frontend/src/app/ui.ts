@@ -33,9 +33,27 @@ export function renderApp(root: HTMLElement) {
             <button class="persona-toggle" id="personaToggle" title="展开/收起">
               ☰
             </button>
-            <div class="persona-title">人物选择</div>
+            <div class="sidebar-tabs" id="sidebarTabs">
+              <button class="sidebar-tab active" id="personaTab" data-panel="personas" type="button">
+                人物选择
+              </button>
+              <button class="sidebar-tab" id="progressTab" data-panel="progress" type="button">
+                导览进程
+              </button>
+            </div>
           </div>
-          <div class="persona-list" id="personaList"></div>
+          <div class="sidebar-panel active" id="personaSidebarPanel">
+            <div class="persona-list" id="personaList"></div>
+          </div>
+          <div class="sidebar-panel" id="progressSidebarPanel">
+            <div class="progress-root" id="progressRoot"></div>
+            <div class="progress-preview" id="progressPreview">
+              <div class="progress-preview-label" id="progressPreviewLabel">当前导览预览</div>
+              <div class="progress-preview-title" id="progressPreviewTitle">尚未进入展区</div>
+              <img class="progress-preview-image hidden" id="progressPreviewImage" alt="当前展区或展品预览" />
+              <div class="progress-preview-empty" id="progressPreviewEmpty">开始导览后，这里会显示当前展区或展品图片。</div>
+            </div>
+          </div>
         </aside>
 
         <!-- 当前人物信息 -->
@@ -132,7 +150,17 @@ export function getUI() {
     avatarFrame: document.getElementById('avatarFrame') as HTMLDivElement,
     personaSidebar: document.getElementById('personaSidebar') as HTMLDivElement,
     personaToggle: document.getElementById('personaToggle') as HTMLButtonElement,
+    personaTab: document.getElementById('personaTab') as HTMLButtonElement,
+    progressTab: document.getElementById('progressTab') as HTMLButtonElement,
+    personaSidebarPanel: document.getElementById('personaSidebarPanel') as HTMLDivElement,
+    progressSidebarPanel: document.getElementById('progressSidebarPanel') as HTMLDivElement,
     personaList: document.getElementById('personaList') as HTMLDivElement,
+    progressRoot: document.getElementById('progressRoot') as HTMLDivElement,
+    progressPreview: document.getElementById('progressPreview') as HTMLDivElement,
+    progressPreviewLabel: document.getElementById('progressPreviewLabel') as HTMLDivElement,
+    progressPreviewTitle: document.getElementById('progressPreviewTitle') as HTMLDivElement,
+    progressPreviewImage: document.getElementById('progressPreviewImage') as HTMLImageElement,
+    progressPreviewEmpty: document.getElementById('progressPreviewEmpty') as HTMLDivElement,
     personaPanel: document.getElementById('personaPanel') as HTMLDivElement,
     personaAvatar: document.getElementById('personaAvatar') as HTMLImageElement,
     personaName: document.getElementById('personaName') as HTMLDivElement,
@@ -158,6 +186,7 @@ export function getUI() {
     input: document.getElementById('input') as HTMLInputElement,
     sendBtn: document.getElementById('send') as HTMLButtonElement,
     startGuideBtn: document.getElementById('startGuide') as HTMLButtonElement,
+    suggestionRow: document.getElementById('suggestionRow') as HTMLDivElement,
 
     // 🎤 voice
     voiceBtn: document.getElementById('voice') as HTMLButtonElement,
@@ -230,4 +259,42 @@ export function hideCaption(ui: ReturnType<typeof getUI>) {
   if (chatbar) {
     chatbar.classList.remove('has-caption')
   }
+}
+
+export function renderSuggestedActions(
+  ui: ReturnType<typeof getUI>,
+  actions: Array<{ label: string; text: string }>
+) {
+  if (!ui.suggestionRow) return
+
+  if (!actions.length) {
+    ui.suggestionRow.innerHTML = ''
+    ui.suggestionRow.classList.remove('show')
+    return
+  }
+
+  ui.suggestionRow.innerHTML = actions.map((action, index) => `
+    <button
+      class="suggestion-chip"
+      data-index="${index}"
+      data-text="${escapeHtmlAttr(action.text)}"
+      type="button"
+    >
+      ${escapeHtml(action.label)}
+    </button>
+  `).join('')
+  ui.suggestionRow.classList.add('show')
+}
+
+function escapeHtml(text: string) {
+  return text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;')
+}
+
+function escapeHtmlAttr(text: string) {
+  return escapeHtml(text)
 }

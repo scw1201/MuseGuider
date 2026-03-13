@@ -148,11 +148,22 @@ class TTSV3Session:
             "X-Api-Request-Id": str(uuid.uuid4()),
         }
         logger.info(f"Connecting to TTS v3 WS: {self.endpoint}")
-        self._ws = await websockets.connect(
-            self.endpoint,
-            extra_headers=headers,
-            max_size=20 * 1024 * 1024,
-        )
+        connect_kwargs = {
+            "max_size": 20 * 1024 * 1024,
+        }
+        try:
+            self._ws = await websockets.connect(
+                self.endpoint,
+                extra_headers=headers,
+                **connect_kwargs,
+            )
+        except TypeError:
+            # websockets>=14 renamed extra_headers -> additional_headers
+            self._ws = await websockets.connect(
+                self.endpoint,
+                additional_headers=headers,
+                **connect_kwargs,
+            )
         logid = None
         try:
             logid = self._ws.response.headers.get("x-tt-logid")
